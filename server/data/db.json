@@ -83,6 +83,13 @@
       "recovery_code": "985420",
       "theme_preference": "light",
       "created_at": "2026-06-30T12:00:13.355Z"
+    },
+    {
+      "user_id": "402825d8-4d8d-42de-b5a7-aba30d436d05",
+      "name": "ESM User",
+      "recovery_code": "294123",
+      "theme_preference": "light",
+      "created_at": "2026-06-30T18:15:23.279Z"
     }
   ],
   "projects": [

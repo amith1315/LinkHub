@@ -443,9 +443,9 @@ app.delete('/api/links/:id', async (req, res) => {
 });
 
 // Start server
-if (require.main === module || !process.env.VERCEL) {
+if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`[LinkHub Server] Running on http://localhost:${PORT}`);
   });
 }
-module.exports = app;
+export default app;

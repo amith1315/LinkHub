@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
 import { db } from './db.js';
 
 const app = express();
@@ -443,7 +444,8 @@ app.delete('/api/links/:id', async (req, res) => {
 });
 
 // Start server
-if (!process.env.VERCEL) {
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+if (isMain) {
   app.listen(PORT, () => {
     console.log(`[LinkHub Server] Running on http://localhost:${PORT}`);
   });

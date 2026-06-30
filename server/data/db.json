@@ -104,6 +104,20 @@
       "recovery_code": "333404",
       "theme_preference": "light",
       "created_at": "2026-06-30T18:31:43.184Z"
+    },
+    {
+      "user_id": "f9461395-bb5e-4c95-9593-f0f5fed70e72",
+      "name": "Amith",
+      "recovery_code": "949287",
+      "theme_preference": "light",
+      "created_at": "2026-06-30T18:35:08.982Z"
+    },
+    {
+      "user_id": "12b839eb-6da4-4031-ab65-d2980488ce1b",
+      "name": "Amith",
+      "recovery_code": "220391",
+      "theme_preference": "light",
+      "created_at": "2026-06-30T18:43:08.191Z"
     }
   ],
   "projects": [
@@ -192,6 +206,24 @@
       "color": "indigo",
       "archived_at": null,
       "created_at": "2026-06-30T17:58:22.208Z"
+    },
+    {
+      "project_id": "5716dd7c-62af-41f7-b555-bd79934b7d79",
+      "user_id": "f9461395-bb5e-4c95-9593-f0f5fed70e72",
+      "name": "L&T",
+      "description": "All Excel, Docs, and Drive link",
+      "color": "indigo",
+      "archived_at": null,
+      "created_at": "2026-06-30T18:35:45.249Z"
+    },
+    {
+      "project_id": "73fd798a-a9c4-4892-b9ff-9a6ae1fa3c56",
+      "user_id": "12b839eb-6da4-4031-ab65-d2980488ce1b",
+      "name": "LnT",
+      "description": null,
+      "color": "indigo",
+      "archived_at": null,
+      "created_at": "2026-06-30T18:43:14.480Z"
     }
   ],
   "links": [

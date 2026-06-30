@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import path from 'path';
 import { db } from './db.js';
 
 const app = express();
@@ -444,7 +445,7 @@ app.delete('/api/links/:id', async (req, res) => {
 });
 
 // Start server
-const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+const isMain = process.argv[1] && path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
 if (isMain) {
   app.listen(PORT, () => {
     console.log(`[LinkHub Server] Running on http://localhost:${PORT}`);

@@ -136,7 +136,7 @@ app.post('/api/users', async (req, res) => {
     });
   } catch (err) {
     console.error('Error creating user:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: `Internal server error: ${err.message}` });
   }
 });
 

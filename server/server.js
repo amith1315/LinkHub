@@ -262,7 +262,23 @@ app.post('/api/projects', async (req, res) => {
   }
 });
 
-// 7. Update project (rename or change color)
+// 7. Reorder projects
+app.put('/api/projects/reorder', async (req, res) => {
+  const userId = req.headers['x-user-id'];
+  const { orderedIds } = req.body;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  if (!Array.isArray(orderedIds)) return res.status(400).json({ error: 'orderedIds array is required' });
+
+  try {
+    await db.reorderProjects(userId, orderedIds);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error reordering projects:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 8. Update project (rename or change color)
 app.put('/api/projects/:id', async (req, res) => {
   const userId = req.headers['x-user-id'];
   const { id } = req.params;
@@ -340,6 +356,22 @@ app.post('/api/projects/share/:id', async (req, res) => {
   } catch (err) {
     console.error('Error sharing project:', err);
     res.status(404).json({ error: err.message || 'Project not found' });
+  }
+});
+
+// Reorder links under project
+app.put('/api/links/reorder', async (req, res) => {
+  const userId = req.headers['x-user-id'];
+  const { orderedIds } = req.body;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  if (!Array.isArray(orderedIds)) return res.status(400).json({ error: 'orderedIds array is required' });
+
+  try {
+    await db.reorderLinks(userId, orderedIds);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error reordering links:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

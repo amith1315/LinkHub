@@ -22,6 +22,11 @@ if (connectionString) {
       rejectUnauthorized: false
     }
   });
+  // Verify/add sort_order columns dynamically on startup
+  pool.query('ALTER TABLE projects ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0')
+    .then(() => pool.query('ALTER TABLE links ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0'))
+    .then(() => console.log('[LinkHub DB] sort_order column checking completed.'))
+    .catch(err => console.error('[LinkHub DB] Migration check error:', err));
 } else {
   console.log('[LinkHub DB] DATABASE_URL not found. Using local JSON DB fallback.');
 }
@@ -144,30 +149,39 @@ export const db = {
   async getProjects(userId, includeArchived = false) {
     if (pool) {
       const query = includeArchived
-        ? 'SELECT * FROM projects WHERE user_id = $1 ORDER BY created_at DESC'
-        : 'SELECT * FROM projects WHERE user_id = $1 AND archived_at IS NULL ORDER BY created_at DESC';
+        ? 'SELECT * FROM projects WHERE user_id = $1 ORDER BY sort_order ASC, created_at DESC'
+        : 'SELECT * FROM projects WHERE user_id = $1 AND archived_at IS NULL ORDER BY sort_order ASC, created_at DESC';
       const res = await pool.query(query, [userId]);
       return res.rows;
     } else {
       const state = readJSONDB();
       return state.projects
         .filter(p => p.user_id === userId && (includeArchived ? true : p.archived_at === null))
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        .sort((a, b) => {
+          const orderA = a.sort_order || 0;
+          const orderB = b.sort_order || 0;
+          if (orderA !== orderB) return orderA - orderB;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
     }
   },
 
   async createProject({ project_id, user_id, name, description, color, archived_at, created_at }) {
     if (pool) {
+      const maxRes = await pool.query('SELECT COALESCE(MAX(sort_order), 0) as max_val FROM projects WHERE user_id = $1', [user_id]);
+      const sortOrder = (maxRes.rows[0]?.max_val || 0) + 1;
       const query = `
-        INSERT INTO projects (project_id, user_id, name, description, color, archived_at, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO projects (project_id, user_id, name, description, color, archived_at, sort_order, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
       `;
-      const res = await pool.query(query, [project_id, user_id, name, description || null, color || 'indigo', archived_at || null, created_at]);
+      const res = await pool.query(query, [project_id, user_id, name, description || null, color || 'indigo', archived_at || null, sortOrder, created_at]);
       return res.rows[0];
     } else {
       const state = readJSONDB();
-      const project = { project_id, user_id, name, description: description || null, color: color || 'indigo', archived_at: archived_at || null, created_at };
+      const userProjects = state.projects.filter(p => p.user_id === user_id);
+      const maxOrder = userProjects.reduce((max, p) => Math.max(max, p.sort_order || 0), 0);
+      const project = { project_id, user_id, name, description: description || null, color: color || 'indigo', archived_at: archived_at || null, sort_order: maxOrder + 1, created_at };
       state.projects.push(project);
       writeJSONDB(state);
       return project;
@@ -283,7 +297,7 @@ export const db = {
         SELECT l.* FROM links l
         JOIN projects p ON l.project_id = p.project_id
         WHERE p.user_id = $1
-        ORDER BY l.created_at ASC
+        ORDER BY l.sort_order ASC, l.created_at ASC
       `;
       const res = await pool.query(query, [userId]);
       return res.rows;
@@ -292,32 +306,50 @@ export const db = {
       const userProjectIds = state.projects
         .filter(p => p.user_id === userId)
         .map(p => p.project_id);
-      return state.links.filter(l => userProjectIds.includes(l.project_id));
+      return state.links
+        .filter(l => userProjectIds.includes(l.project_id))
+        .sort((a, b) => {
+          const orderA = a.sort_order || 0;
+          const orderB = b.sort_order || 0;
+          if (orderA !== orderB) return orderA - orderB;
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        });
     }
   },
 
   async getProjectLinks(projectId) {
     if (pool) {
-      const res = await pool.query('SELECT * FROM links WHERE project_id = $1 ORDER BY created_at ASC', [projectId]);
+      const res = await pool.query('SELECT * FROM links WHERE project_id = $1 ORDER BY sort_order ASC, created_at ASC', [projectId]);
       return res.rows;
     } else {
       const state = readJSONDB();
-      return state.links.filter(l => l.project_id === projectId);
+      return state.links
+        .filter(l => l.project_id === projectId)
+        .sort((a, b) => {
+          const orderA = a.sort_order || 0;
+          const orderB = b.sort_order || 0;
+          if (orderA !== orderB) return orderA - orderB;
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        });
     }
   },
 
   async createLink({ link_id, project_id, alias, url, type, created_at }) {
     if (pool) {
+      const maxRes = await pool.query('SELECT COALESCE(MAX(sort_order), 0) as max_val FROM links WHERE project_id = $1', [project_id]);
+      const sortOrder = (maxRes.rows[0]?.max_val || 0) + 1;
       const query = `
-        INSERT INTO links (link_id, project_id, alias, url, type, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO links (link_id, project_id, alias, url, type, sort_order, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
       `;
-      const res = await pool.query(query, [link_id, project_id, alias, url, type, created_at]);
+      const res = await pool.query(query, [link_id, project_id, alias, url, type, sortOrder, created_at]);
       return res.rows[0];
     } else {
       const state = readJSONDB();
-      const link = { link_id, project_id, alias, url, type, created_at };
+      const projectLinks = state.links.filter(l => l.project_id === project_id);
+      const maxOrder = projectLinks.reduce((max, l) => Math.max(max, l.sort_order || 0), 0);
+      const link = { link_id, project_id, alias, url, type, sort_order: maxOrder + 1, created_at };
       state.links.push(link);
       writeJSONDB(state);
       return link;
@@ -417,5 +449,65 @@ export const db = {
     }
 
     return createdProject;
+  },
+
+  async reorderProjects(userId, orderedProjectIds) {
+    if (pool) {
+      for (let i = 0; i < orderedProjectIds.length; i++) {
+        await pool.query(
+          'UPDATE projects SET sort_order = $1 WHERE project_id = $2 AND user_id = $3',
+          [i, orderedProjectIds[i], userId]
+        );
+      }
+      return true;
+    } else {
+      const state = readJSONDB();
+      let modified = false;
+      orderedProjectIds.forEach((id, index) => {
+        const idx = state.projects.findIndex(p => p.project_id === id && p.user_id === userId);
+        if (idx !== -1) {
+          state.projects[idx].sort_order = index;
+          modified = true;
+        }
+      });
+      if (modified) {
+        writeJSONDB(state);
+      }
+      return true;
+    }
+  },
+
+  async reorderLinks(userId, orderedLinkIds) {
+    if (pool) {
+      for (let i = 0; i < orderedLinkIds.length; i++) {
+        await pool.query(
+          `UPDATE links l SET sort_order = $1 
+           FROM projects p 
+           WHERE l.project_id = p.project_id 
+           AND l.link_id = $2 
+           AND p.user_id = $3`,
+          [i, orderedLinkIds[i], userId]
+        );
+      }
+      return true;
+    } else {
+      const state = readJSONDB();
+      let modified = false;
+      const userProjectIds = state.projects
+        .filter(p => p.user_id === userId)
+        .map(p => p.project_id);
+      
+      orderedLinkIds.forEach((id, index) => {
+        const idx = state.links.findIndex(l => l.link_id === id && userProjectIds.includes(l.project_id));
+        if (idx !== -1) {
+          state.links[idx].sort_order = index;
+          modified = true;
+        }
+      });
+      if (modified) {
+        writeJSONDB(state);
+      }
+      return true;
+    }
   }
 };

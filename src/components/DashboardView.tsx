@@ -236,6 +236,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
   const [archivedProjects, setArchivedProjects] = useState<Project[]>([]);
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
 
+  // Drag and drop states
+  const [draggedProjectId, setDraggedProjectId] = useState<string | null>(null);
+  const [dragOverProjectId, setDragOverProjectId] = useState<string | null>(null);
+  const [draggedLinkId, setDraggedLinkId] = useState<string | null>(null);
+  const [dragOverLinkId, setDragOverLinkId] = useState<string | null>(null);
+
   // Splash screen hello greeting logic
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
@@ -729,9 +735,47 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
                   {projects.map(project => (
                     <div 
                       key={project.project_id} 
-                      className={`card project-tile border-color-${project.color}`}
+                      className={`card project-tile border-color-${project.color} ${draggedProjectId === project.project_id ? 'dragging' : ''} ${dragOverProjectId === project.project_id ? 'drag-over' : ''}`}
                       onClick={() => { window.location.hash = `#/project/${project.project_id}`; }}
                       style={{ cursor: 'pointer' }}
+                      draggable={searchQuery.trim() === ''}
+                      onDragStart={(e) => {
+                        e.stopPropagation();
+                        setDraggedProjectId(project.project_id);
+                        e.dataTransfer.effectAllowed = 'move';
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        if (draggedProjectId && draggedProjectId !== project.project_id) {
+                          setDragOverProjectId(project.project_id);
+                        }
+                      }}
+                      onDragLeave={() => setDragOverProjectId(null)}
+                      onDrop={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDragOverProjectId(null);
+                        if (!draggedProjectId || draggedProjectId === project.project_id) return;
+                        
+                        const originalIndex = projects.findIndex(p => p.project_id === draggedProjectId);
+                        const targetIndex = projects.findIndex(p => p.project_id === project.project_id);
+                        
+                        if (originalIndex !== -1 && targetIndex !== -1) {
+                          const updatedProjects = [...projects];
+                          const [draggedItem] = updatedProjects.splice(originalIndex, 1);
+                          updatedProjects.splice(targetIndex, 0, draggedItem);
+                          
+                          setProjects(updatedProjects);
+                          setDraggedProjectId(null);
+                          
+                          try {
+                            await api.reorderProjects(updatedProjects.map(p => p.project_id));
+                          } catch (err) {
+                            console.error('Failed to save project order:', err);
+                          }
+                        }
+                      }}
+                      onDragEnd={() => setDraggedProjectId(null)}
                     >
                       <h4 style={{ fontSize: '1.15rem', fontWeight: 600, wordBreak: 'break-word' }}>{project.name}</h4>
                       {project.description && (
@@ -927,14 +971,56 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
                 {activeLinks.map(link => (
                   <div 
                     key={link.link_id} 
-                    className="card link-tile"
+                    className={`card link-tile ${draggedLinkId === link.link_id ? 'dragging' : ''} ${dragOverLinkId === link.link_id ? 'drag-over' : ''}`}
                     onClick={() => window.open(link.url, '_blank')}
                     style={{ cursor: 'pointer' }}
+                    draggable
+                    onDragStart={(e) => {
+                      e.stopPropagation();
+                      setDraggedLinkId(link.link_id);
+                      e.dataTransfer.effectAllowed = 'move';
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      if (draggedLinkId && draggedLinkId !== link.link_id) {
+                        setDragOverLinkId(link.link_id);
+                      }
+                    }}
+                    onDragLeave={() => setDragOverLinkId(null)}
+                    onDrop={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDragOverLinkId(null);
+                      if (!draggedLinkId || draggedLinkId === link.link_id) return;
+                      
+                      const originalIndex = links.findIndex(l => l.link_id === draggedLinkId);
+                      const targetIndex = links.findIndex(l => l.link_id === link.link_id);
+                      
+                      if (originalIndex !== -1 && targetIndex !== -1) {
+                        const updatedLinks = [...links];
+                        const [draggedItem] = updatedLinks.splice(originalIndex, 1);
+                        updatedLinks.splice(targetIndex, 0, draggedItem);
+                        
+                        setLinks(updatedLinks);
+                        setDraggedLinkId(null);
+                        
+                        try {
+                          await api.reorderLinks(
+                            updatedLinks
+                              .filter(l => l.project_id === selectedProjectId)
+                              .map(l => l.link_id)
+                          );
+                        } catch (err) {
+                          console.error('Failed to save link order:', err);
+                        }
+                      }
+                    }}
+                    onDragEnd={() => setDraggedLinkId(null)}
                   >
                     {/* Link Label and Icon */}
                     <FaviconIcon url={link.url} type={link.type} getLinkIcon={getLinkIcon} />
 
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.25rem', overflow: 'hidden' }}>
+                    <div className="link-tile-text" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.25rem', overflow: 'hidden' }}>
                       <a 
                         href={link.url} 
                         target="_blank" 

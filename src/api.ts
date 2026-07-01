@@ -24,6 +24,7 @@ export interface Project {
   description: string | null;
   color: string;
   archived_at: string | null;
+  sort_order?: number;
   created_at: string;
 }
 
@@ -33,6 +34,7 @@ export interface Link {
   alias: string;
   url: string;
   type: 'doc' | 'sheet' | 'slide' | 'drive' | 'figma' | 'repo' | 'notion' | 'other';
+  sort_order?: number;
   created_at: string;
 }
 
@@ -212,6 +214,28 @@ export const api = {
     });
     if (!response.ok) {
       throw new Error('Failed to delete link');
+    }
+  },
+
+  async reorderProjects(orderedIds: string[]): Promise<void> {
+    const response = await fetch(`${API_BASE}/api/projects/reorder`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ orderedIds })
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update projects order');
+    }
+  },
+
+  async reorderLinks(orderedIds: string[]): Promise<void> {
+    const response = await fetch(`${API_BASE}/api/links/reorder`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ orderedIds })
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update links order');
     }
   }
 };

@@ -283,6 +283,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
     };
   }, []);
 
+  const handleConfirmLogout = () => {
+    const isConfirmed = window.confirm(
+      "Are you sure you want to log out? Make sure you have backed up your recovery code. Otherwise, you will lose access to your account."
+    );
+    if (isConfirmed) {
+      onLogout();
+    }
+  };
+
   // URL Hash routing to synchronize active project and allow browser back/forward buttons
   useEffect(() => {
     const handleHashChange = () => {
@@ -581,7 +590,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
 
           {/* Log Out */}
           <button 
-            onClick={onLogout} 
+            onClick={handleConfirmLogout} 
             className="btn-icon" 
             title="Sign Out"
             id="logout-btn"
@@ -1155,114 +1164,114 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
         onSave={handleSaveLink}
         link={editingLink}
       />
+    </div>
 
-      {/* ---------------- ARCHIVED PROJECTS POPUP DIALOG ---------------- */}
-      {showArchivedDialog && (
+    {/* ---------------- ARCHIVED PROJECTS POPUP DIALOG ---------------- */}
+    {showArchivedDialog && (
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(9, 9, 11, 0.7)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 100
+        }}
+        onClick={() => setShowArchivedDialog(false)}
+      >
         <div 
           style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            backgroundColor: 'rgba(9, 9, 11, 0.7)',
-            backdropFilter: 'blur(4px)',
+            width: '90%',
+            maxWidth: '500px',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '2rem',
+            maxHeight: '80vh',
+            overflowY: 'auto',
             display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 100
+            flexDirection: 'column',
+            gap: '1.25rem'
           }}
-          onClick={() => setShowArchivedDialog(false)}
+          onClick={(e) => e.stopPropagation()}
         >
-          <div 
-            style={{
-              width: '90%',
-              maxWidth: '500px',
-              backgroundColor: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '2rem',
-              maxHeight: '80vh',
-              overflowY: 'auto',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1.25rem'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Archive size={20} />
-                <h2 style={{ fontSize: '1.25rem' }}>Archived Projects</h2>
-              </div>
-              <button 
-                onClick={() => setShowArchivedDialog(false)} 
-                className="btn-icon"
-                aria-label="Close archived projects"
-              >
-                <X size={18} />
-              </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Archive size={20} />
+              <h2 style={{ fontSize: '1.25rem' }}>Archived Projects</h2>
             </div>
-
-            {archivedProjects.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
-                {archivedProjects.map(project => (
-                  <div 
-                    key={project.project_id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '0.75rem 1rem',
-                      border: '1px solid var(--border)',
-                      borderRadius: 'var(--radius-sm)',
-                      backgroundColor: 'var(--surface-hover)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <div 
-                        style={{ 
-                          width: '0.5rem', 
-                          height: '0.5rem', 
-                          borderRadius: '50%',
-                          backgroundColor: `var(--color-${project.color})` 
-                        }} 
-                      />
-                      <span style={{ fontWeight: 600 }}>{project.name}</span>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '0.25rem' }}>
-                      <button
-                        onClick={() => handleRestoreProject(project.project_id)}
-                        className="btn btn-secondary"
-                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', gap: '0.25rem' }}
-                        title="Restore Project"
-                      >
-                        <RotateCcw size={12} />
-                        <span>Restore</span>
-                      </button>
-                      <button
-                        onClick={() => handlePermanentDeleteProject(project.project_id)}
-                        className="btn btn-danger"
-                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', gap: '0.25rem' }}
-                        title="Delete Permanently"
-                      >
-                        <Trash2 size={12} />
-                        <span>Delete</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-muted)' }}>
-                <p>No archived projects found.</p>
-              </div>
-            )}
+            <button 
+              onClick={() => setShowArchivedDialog(false)} 
+              className="btn-icon"
+              aria-label="Close archived projects"
+            >
+              <X size={18} />
+            </button>
           </div>
+
+          {archivedProjects.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+              {archivedProjects.map(project => (
+                <div 
+                  key={project.project_id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.75rem 1rem',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'var(--surface-hover)'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div 
+                      style={{ 
+                        width: '0.5rem', 
+                        height: '0.5rem', 
+                        borderRadius: '50%',
+                        backgroundColor: `var(--color-${project.color})` 
+                      }} 
+                    />
+                    <span style={{ fontWeight: 600 }}>{project.name}</span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.25rem' }}>
+                    <button
+                      onClick={() => handleRestoreProject(project.project_id)}
+                      className="btn btn-secondary"
+                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', gap: '0.25rem' }}
+                      title="Restore Project"
+                    >
+                      <RotateCcw size={12} />
+                      <span>Restore</span>
+                    </button>
+                    <button
+                      onClick={() => handlePermanentDeleteProject(project.project_id)}
+                      className="btn btn-danger"
+                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', gap: '0.25rem' }}
+                      title="Delete Permanently"
+                    >
+                      <Trash2 size={12} />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-muted)' }}>
+              <p>No archived projects found.</p>
+            </div>
+          )}
         </div>
-      )}
-    </div>
-    </>
+      </div>
+    )}
+  </>
   );
 };

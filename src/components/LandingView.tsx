@@ -216,7 +216,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 <input
                   id="recovery-input"
                   type="text"
-                  placeholder="Enter 6-digit code (e.g. 123456)"
+                  placeholder="Enter 6-digit code"
                   value={recoveryCode}
                   onChange={(e) => setRecoveryCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   className="input-field"

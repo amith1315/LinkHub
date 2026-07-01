@@ -504,7 +504,6 @@ dialog[open] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--border);
   padding-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 1rem;
@@ -583,6 +582,11 @@ html.light .splash-greeting {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Invert dark mode GitHub logos */
+html.dark img[src*="github.com"] {
+  filter: invert(1) brightness(1.8) contrast(1.2);
 }
 
 @keyframes welcomeFadeIn {

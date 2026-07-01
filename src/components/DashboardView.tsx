@@ -43,6 +43,30 @@ const FaviconIcon: React.FC<FaviconIconProps> = ({ url, type, getLinkIcon }) => 
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const isTeams = url.toLowerCase().includes('teams.microsoft.com') || url.toLowerCase().includes('teams.live.com');
+
+  if (isTeams) {
+    return (
+      <div className="link-tile-icon-wrapper" style={{ position: 'relative' }}>
+        <div style={{
+          width: '1.75rem',
+          height: '1.75rem',
+          borderRadius: '6px',
+          backgroundColor: '#6264A7',
+          color: '#ffffff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontWeight: 800,
+          fontSize: '0.9rem',
+          fontFamily: 'Inter, system-ui, sans-serif'
+        }}>
+          T
+        </div>
+      </div>
+    );
+  }
+
   const getCustomFaviconUrl = (linkUrl: string, linkType: string): string => {
     const lowerUrl = linkUrl.toLowerCase();
     

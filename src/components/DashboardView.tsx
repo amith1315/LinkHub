@@ -440,17 +440,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
     <div className="app-container" style={{ animation: 'fadeIn var(--transition-normal) forwards' }}>
       
       {/* Top Header Row */}
-      <header 
-        style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          marginBottom: '3rem',
-          borderBottom: '1px solid var(--border)',
-          paddingBottom: '1.5rem'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <header className="dashboard-header">
+        <div className="header-brand">
           <span 
             onClick={() => { window.location.hash = ''; }}
             className="logo-gradient"
@@ -464,12 +455,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
           </span>
           <span style={{ color: 'var(--text-muted)', fontSize: '1.25rem' }}>/</span>
           <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text-muted)' }}>
-            Hello, {user.name}
+            {activeProject ? activeProject.name : 'Dashboard'}
           </span>
         </div>
 
         {/* Header Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="header-controls">
           
           {/* Recovery Code Control */}
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -552,6 +543,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
         
         /* ---------------- DASHBOARD VIEW (ALL PROJECTS) ---------------- */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
+          
+          {/* Welcome Greeting Banner */}
+          <div className="welcome-banner">
+            <h1 className="welcome-greeting">Hello, {user.name}.</h1>
+          </div>
           
           {/* Search and Action Bar */}
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>

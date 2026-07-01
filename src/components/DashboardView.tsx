@@ -236,6 +236,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
   const [archivedProjects, setArchivedProjects] = useState<Project[]>([]);
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
 
+  // Splash screen hello greeting logic
+  const [showSplash, setShowSplash] = useState(true);
+  const [fadeOut, setFadeOut] = useState(false);
+
+  useEffect(() => {
+    const fadeTimer = setTimeout(() => {
+      setFadeOut(true);
+    }, 1000);
+    const removeTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1300);
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(removeTimer);
+    };
+  }, []);
+
   // URL Hash routing to synchronize active project and allow browser back/forward buttons
   useEffect(() => {
     const handleHashChange = () => {
@@ -437,11 +454,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
   );
 
   return (
-    <div className="app-container" style={{ animation: 'fadeIn var(--transition-normal) forwards' }}>
-      
-      {/* Top Header Row */}
-      <header className="dashboard-header">
-        <div className="header-brand">
+    <>
+      {showSplash && (
+        <div className={`splash-screen ${fadeOut ? 'fade-out' : ''}`}>
+          <h1 className="splash-greeting">Hello, {user.name}.</h1>
+        </div>
+      )}
+
+      <div className="app-container" style={{ animation: 'fadeIn var(--transition-normal) forwards' }}>
+        
+        {/* Top Header Row */}
+        <header className="dashboard-header">
+          <div className="header-brand">
           <span 
             onClick={() => { window.location.hash = ''; }}
             className="logo-gradient"
@@ -455,7 +479,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
           </span>
           <span style={{ color: 'var(--text-muted)', fontSize: '1.25rem' }}>/</span>
           <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text-muted)' }}>
-            {activeProject ? activeProject.name : 'Dashboard'}
+            Hello, {user.name}
           </span>
         </div>
 
@@ -543,11 +567,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
         
         /* ---------------- DASHBOARD VIEW (ALL PROJECTS) ---------------- */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
-          
-          {/* Welcome Greeting Banner */}
-          <div className="welcome-banner">
-            <h1 className="welcome-greeting">Hello, {user.name}.</h1>
-          </div>
           
           {/* Search and Action Bar */}
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1134,5 +1153,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user, onLogout }) 
         </div>
       )}
     </div>
+    </>
   );
 };

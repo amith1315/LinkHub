@@ -322,12 +322,11 @@ dialog[open] {
 }
 
 .project-tile {
-  aspect-ratio: 1 / 1;
+  height: 180px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   padding: 1.25rem;
-  min-height: 180px;
   box-sizing: border-box;
 }
 
@@ -382,15 +381,16 @@ dialog[open] {
 }
 
 .link-tile {
-  aspect-ratio: 1 / 1;
+  height: 180px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
   text-align: center;
-  min-height: 180px;
   box-sizing: border-box;
+  position: relative;
 }
 
 .link-tile-icon-wrapper {
@@ -436,19 +436,27 @@ dialog[open] {
 }
 
 .link-tile-actions {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
   display: flex;
   gap: 0.25rem;
-  margin-top: 0.5rem;
   opacity: 0;
-  transform: translateY(5px);
   transition: opacity var(--transition-fast), transform var(--transition-fast);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.15rem 0.35rem;
+  box-shadow: var(--shadow-sm);
   flex-shrink: 0;
+  z-index: 10;
 }
 
 .link-tile:hover .link-tile-actions,
 .link-tile:focus-within .link-tile-actions {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(-50%) translateY(0);
 }
 
 /* Dashboard Header & Controls Classes */
@@ -495,6 +503,41 @@ dialog[open] {
   animation: welcomeFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Splash Screen Apple Hello Style Greeting */
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity var(--transition-normal);
+  opacity: 1;
+}
+
+.splash-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-greeting {
+  font-size: 4.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  background: linear-gradient(135deg, #ff7e40 0%, #ff255b 35%, #8a2be2 70%, #4a00e0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  display: inline-block;
+  animation: welcomeFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @keyframes welcomeFadeIn {
   from {
     opacity: 0;
@@ -524,13 +567,17 @@ dialog[open] {
     font-size: 2.25rem;
   }
 
+  .splash-greeting {
+    font-size: 3rem;
+  }
+
   .projects-grid, .links-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
 
   .project-tile, .link-tile {
-    min-height: 150px;
+    height: 155px;
     padding: 1rem;
   }
 
